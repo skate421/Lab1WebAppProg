@@ -11,6 +11,9 @@
   "author": "Katie MacDonald",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.21.0"
+    "@prisma/client": "^5.19.1",
+    "express": "^4.21.0",
+    "multer": "^1.4.5-lts.1",
+    "prisma": "^5.19.1"
   }
 }
