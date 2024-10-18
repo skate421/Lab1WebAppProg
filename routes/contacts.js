@@ -144,13 +144,32 @@ router.delete('/delete/:id', (req, res) => {
   const id = req.params.id;
 
   //Validate the input
+  if (isNaN(id)){
+    return res.status(400).json({message: 'Invalid id.'});
+  }
 
   //Get contact by id. Return 404 if not found.
+  if (contact === null){
+    return res.status(404).json({message: 'Contact not found.'});
+  }
 
   //Delete the image file
-  
+  if (contact.filename){
+    fs.unlink(`public/images/${contact.filename}`, (err) =>{
+      if (err){
+        console.error(err);
+      }
+    });
+  }
+
   //Delete the contact in the database
-  res.send('Delete by id' + id);
+  const deletedContact = await.prisma.contact.delete({
+    where: {
+      id: parseInt(id),
+    },
+  });
+
+  res.json({message: 'Contact deleted.'});
 });
 
 export default router;
