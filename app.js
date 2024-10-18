@@ -1,12 +1,16 @@
 import express from 'express';
+import cors from 'cors';
 import contactsRouter from './routes/contacts.js';
 
 const port = process.env.PORT || 3000;
 const app = express();
 
+//Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+app.use(cors());
+
 app.use('/api/contacts', contactsRouter);
 
 /*app.get('/', (req, res) => {

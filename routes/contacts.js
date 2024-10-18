@@ -1,6 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import { PrismaClient } from '@prisma/client';
+import fs from 'fs';
 
 const router = express.Router();
 
@@ -84,20 +85,59 @@ router.post('/create', upload.single('image'), async(req, res) => {
 });
 
 //Update a contact by id (with Multer)
-router.put('/update/:id', upload.single('image'), (req, res) => {
+router.put('/update/:id', upload.single('image'), async(req, res) => {
   const id = req.params.id;
 
   //Capture the inputs
+  const {firstName, lastName, email, phone, title} = req.body;
+  const filename = req.file ? req.file.filename : null;
 
   //Validate the inputs
+  if (isNaN(id)){
+    return res.status(400).json({message: 'Invalid id.'});
+  }
 
+  if(!firstName || !lastName || !email || !phone){
+    return res.status(400).json({message: 'First name, last name and email are required'});
+  }
   //Get contact by id. Return 404 if null (not found)
+  const contact = await prisma.contact.findUnique({
+    where: {
+      id: parseInt(id)
+    }
+  });
+
+  //If contact not found, return 404
+  if (contact === null){
+    return res.status(404).json({message: 'Contact not found.'});
+  }
 
   //If image file is uploaded: get the file name to save in database, delete the old image file, set the file name to new file name
   //If NO image file is uploaded: when updating record with Prisma, set the file name to the old file name
-  
-  //Update record in the database (ensuring file name is new or old name)
-  res.send('Update by id' + id);
+  if (newFilename && contact.filename){
+    fs.unlink(`public/images/${contact.filename}`, (err) =>{
+      if (err){
+        console.error(err);
+      }
+    });
+  }
+
+  //Update record in database
+  const updatedContact = await prisma.contact.update({
+    where: {
+      id: parseInt(id),
+    },
+    data: {
+      firstName: firstName,
+      lastName: lastName,
+      title: title || null,
+      email: email,
+      phone: phone || null,
+      filename: newFilename || contact.filename,
+    },
+  });
+
+  res.json(updatedContact);
 });
 
 router.delete('/delete/:id', (req, res) => {
